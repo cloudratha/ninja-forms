@@ -54,7 +54,6 @@ define( [], function() {
 
     			jQuery( this.el ).find( '.nf-element' ).mask( mask );
     		}
-
 			nfRadio.channel( this.model.get( 'type' ) ).trigger( 'render:view', this );
 			nfRadio.channel( 'fields' ).trigger( 'render:view', this );
 		},
@@ -189,9 +188,20 @@ define( [], function() {
 					}
 				},
 
-				currencySymbol: function() {
+				renderCurrencyFormatting: function( number ) {
+					/*
+					 * Our number will have a . as a decimal point. We want to replace that with our locale decimal, nfi18n.decimal_point.
+					 */
+					var replacedDecimal = number.toString().replace( '.', '||' );
+					/*
+					 * Add thousands separator. Our original number var won't have thousands separators.
+					 */
+					var replacedThousands = replacedDecimal.replace( /\B(?=(\d{3})+(?!\d))/g, nfi18n.thousands_sep );
+					var formattedNumber = replacedThousands.replace( '||', nfi18n.decimal_point );
+
 					var form = nfRadio.channel( 'app' ).request( 'get:form', that.model.get( 'formID' ) );
-					return form.get( 'settings' ).currency_symbol;
+					var currency_symbol = form.get( 'settings' ).currency_symbol;
+					return currency_symbol + formattedNumber;
 				}
 			};
 		},
@@ -235,6 +245,10 @@ define( [], function() {
 			nfRadio.channel( 'field-' + this.model.get( 'id' ) ).trigger( 'blur:field', el, this.model );
 			nfRadio.channel( this.model.get( 'type' ) ).trigger( 'blur:field', el, this.model );
 			nfRadio.channel( 'fields' ).trigger( 'blur:field', el, this.model );
+		},
+
+		onAttach: function() {
+			nfRadio.channel( this.model.get( 'type' ) ).trigger( 'attach:view', this );
 		}
 	});
 
